@@ -2,10 +2,10 @@
 #include <HTTPClient.h>
 #include<ArduinoJson.h>
 
-const char* ssid = "Redmi Note 9 Pro";
-const char* password = "enterpassword";
+const char* ssid = "YOUR SSID NAME";
+const char* password = "YOUR_NETWORK_PASSWORD";
 
-const char* server = "http://192.168.192.244:5000/";
+const char* server = "http://IP_ADDRESS:PORT/";
 const long interval = 5000;
 unsigned long previousMillis = 0;
 void setup() {
@@ -35,20 +35,36 @@ void loop() {
         
         char json[500];
         output.toCharArray(json,500);
-    StaticJsonDocument<48> doc;
-      DeserializationError error = deserializeJson(doc, json,500);
-      if (error) {
-        Serial.print("deserializeJson() failed: ");
-        Serial.println(error.c_str());
-        return;
-      }
+        //Set Estimated Size of the imput stream 
+        StaticJsonDocument<500> doc;
+        DeserializationError error = deserializeJson(doc, json,500);
 
-      int g = doc["0"]["g"]; // 2
-      int v = doc["0"]["v"]; // 1
-      Serial.println(g);
-      Serial.println(v);
-      pinMode(g,OUTPUT);
-      digitalWrite(g,v);
+        if (error) {
+          Serial.print("deserializeJson() failed: ");
+          Serial.println(error.c_str());
+          return;
+        } 
+                /*
+                 JSon object in doc Format {
+          "0": {
+            "g": 2,
+            "v": 1
+          },
+          "1": {
+            "g": 12,
+            "v": 1
+          }
+        }*/
+        for (JsonPair item : doc.as<JsonObject>()) {
+            const char* item_key = item.key().c_str(); 
+            
+            int g = item.value()["g"]; 
+            int v = item.value()["v"]; 
+            Serial.println(g);
+            Serial.println(v);
+            pinMode(g,OUTPUT);
+            digitalWrite(g,v);
+        }
         previousMillis = currentMillis;
       }else{
         Serial.println("WiFi Disconnected");
